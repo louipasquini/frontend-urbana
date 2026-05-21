@@ -1,38 +1,38 @@
-# 🍸 UrbanaBase — Front-end Coquetelaria Urbana
+# UrbanaBase — Front-end Coquetelaria Urbana
 
 Interface web moderna para gerenciamento e operação de coquetelaria, integrada ao ecossistema **UrbanaBase**. Desenvolvida em React, Vite, Tailwind CSS e Recharts para oferecer uma experiência fluida, rápida e responsiva para administradores, bartenders e gestores de estoque.
 
 ---
 
-## 🚀 Funcionalidades Principais
+## Funcionalidades Principais
 
-* **📊 Dashboard & Analytics (Tendências):**
+* ** Dashboard & Analytics (Tendências):**
   * Gráficos dinâmicos de faturamento e vendas por período.
   * Visualização rápida de indicadores principais (drink mais vendido, base mais consumida).
   * Rankings integrados de drinks populares e consumo de estoque.
   * Filtros ágeis de data (Quinzenal, Mensal, Trimestral, Semestral).
 
-* **🧾 Gestão de Comandas (Operação de Balcão):**
+* ** Gestão de Comandas (Operação de Balcão):**
   * Abertura e acompanhamento de comandas ativas em tempo real.
   * Adição rápida de bebidas e drinks com controle de quantidade.
   * Histórico de comandas fechadas com resumo de itens e totalizadores.
 
-* **📦 Controle de Estoque (Inteligente):**
+* ** Controle de Estoque (Inteligente):**
   * Monitoramento de insumos com alertas visuais automáticos de **estoque baixo**.
   * Controle por unidades de medida personalizadas (ml, un, etc.).
   * Cadastro, edição e exclusão (CRUD) simplificada de insumos.
 
-* **🍸 Catálogo de Drinks (Cardápio):**
+* ** Catálogo de Drinks (Cardápio):**
   * Gerenciamento de receitas, preços e categorias de drinks.
   * Associação de ingredientes base para cruzamento analítico com o estoque.
 
-* **🔑 Controle de Acessos & Perfis:**
+* ** Controle de Acessos & Perfis:**
   * Login seguro integrado com JWT.
   * Visualização e permissões adaptadas para cada perfil de usuário (`admin`, `bartender`, `estoque`).
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 * **Core:** React 19 + JavaScript (ES6+)
 * **Build tool:** Vite 8 (Ultra rápido, com HMR instantâneo)
@@ -42,7 +42,7 @@ Interface web moderna para gerenciamento e operação de coquetelaria, integrada
 
 ---
 
-## 💻 Desenvolvimento Local
+## Desenvolvimento Local
 
 ### 1. Pré-requisitos
 Certifique-se de possuir o **Node.js** (versão 18 ou superior) instalado em sua máquina.
@@ -85,7 +85,7 @@ npm run build
 
 ---
 
-## ☁️ Implantação na Vercel
+## Implantação na Vercel
 
 O projeto está totalmente preparado para ser hospedado na **Vercel** de forma integrada com o repositório do GitHub.
 
@@ -95,8 +95,8 @@ Ao importar o projeto na Vercel, acesse as **Environment Variables** nas configu
 * **Key:** `VITE_API_URL`
 * **Value:** `https://backend-urbana-02588e976dd6.herokuapp.com`
 
-> 💡 **Nota:** Como na Vercel o build de produção é feito de forma estática e as requisições ocorrem diretamente do navegador do usuário final para a API do Heroku, o linter e o build funcionarão normalmente. Certifique-se de que o backend do Heroku possua as origens de produção configuradas no CORS para aceitar requisições vindas do seu domínio da Vercel.
+> **Nota:** Como na Vercel o build de produção é feito de forma estática e as requisições ocorrem diretamente do navegador do usuário final para a API do Heroku, o linter e o build funcionarão normalmente. Certifique-se de que o backend do Heroku possua as origens de produção configuradas no CORS para aceitar requisições vindas do seu domínio da Vercel.
 
 ---
 
-Desenvolvido para **Coquetelaria Urbana** — Design & Operações Premium. 🥂
+Desenvolvido para **Coquetelaria Urbana** 
