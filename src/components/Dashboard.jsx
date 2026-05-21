@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { analyticsApi } from "../api";
+import { analyticsApi, drinksApi, ordersApi } from "../api";
 import { ApiError } from "../api/client";
 import DashboardChart from "./DashboardChart";
 import Alert from "./ui/Alert";
@@ -126,6 +126,10 @@ export default function Dashboard() {
   const [endDate, setEndDate] = useState(padrao.end);
   const [atalhoAtivo, setAtalhoAtivo] = useState("semestre");
 
+  const [allDrinks, setAllDrinks] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
+  const [dadosCarregados, setDadosCarregados] = useState(false);
+
   function aplicarAtalho(id) {
     const atalho = ATALHOS_PERIODO.find((a) => a.id === id);
     if (!atalho) return;
@@ -136,29 +140,132 @@ export default function Dashboard() {
     setAtalhoAtivo(id);
   }
 
+  // Efeito para carregar o catálogo de drinks e histórico de comandas (uma única vez ao montar)
   useEffect(() => {
-    async function carregar() {
+    async function carregarDadosIniciais() {
+      try {
+        const [resDrinks, resOrders] = await Promise.all([
+          drinksApi.list(),
+          ordersApi.history(),
+        ]);
+        setAllDrinks(Array.isArray(resDrinks) ? resDrinks : []);
+        setAllOrders(Array.isArray(resOrders) ? resOrders : []);
+        setDadosCarregados(true);
+      } catch (err) {
+        setErro(err instanceof ApiError ? err.message : "Erro ao carregar dados do dashboard");
+        setCarregando(false);
+      }
+    }
+    carregarDadosIniciais();
+  }, []);
+
+  // Efeito para buscar as vendas do período e calcular os rankings no frontend
+  useEffect(() => {
+    if (!dadosCarregados) return;
+
+    async function carregarVendasEFiltrar() {
       setCarregando(true);
       setErro("");
       try {
-        const [drinks, bases, products, sales] = await Promise.all([
-          analyticsApi.topDrinks(5),
-          analyticsApi.topBases(5),
-          analyticsApi.topProducts(5),
-          analyticsApi.sales(startDate, endDate),
-        ]);
-        setTopDrinks(Array.isArray(drinks) ? drinks : []);
-        setTopBases(Array.isArray(bases) ? bases : []);
-        setTopProducts(Array.isArray(products) ? products : []);
+        const sales = await analyticsApi.sales(startDate, endDate);
         setVendas(Array.isArray(sales) ? sales : []);
+
+        // Filtrar comandas fechadas que estão no período selecionado
+        const closedOrdersInPeriod = allOrders.filter((order) => {
+          if (order.status !== "closed" || !order.closed_at) return false;
+          const orderDateStr = order.closed_at.substring(0, 10);
+          return orderDateStr >= startDate && orderDateStr <= endDate;
+        });
+
+        // 1. Calcular Top Drinks no período
+        const drinksMap = {};
+        closedOrdersInPeriod.forEach((order) => {
+          (order.items || []).forEach((item) => {
+            const { drink_id, drink_name, quantity, total_price } = item;
+            if (!drinksMap[drink_id]) {
+              drinksMap[drink_id] = {
+                drink_id,
+                name: drink_name || "—",
+                total_sold: 0,
+                revenue: 0,
+              };
+            }
+            drinksMap[drink_id].total_sold += quantity;
+            drinksMap[drink_id].revenue += total_price;
+          });
+        });
+        const computedTopDrinks = Object.values(drinksMap)
+          .sort((a, b) => b.total_sold - a.total_sold)
+          .slice(0, 5);
+        setTopDrinks(computedTopDrinks);
+
+        // 2. Calcular Top Bases no período
+        const drinkToBaseMap = {};
+        allDrinks.forEach((d) => {
+          drinkToBaseMap[d.id] = d.base_drink;
+        });
+
+        const basesMap = {};
+        closedOrdersInPeriod.forEach((order) => {
+          (order.items || []).forEach((item) => {
+            const { drink_id, quantity } = item;
+            const base_drink = drinkToBaseMap[drink_id] || "Outros";
+            if (!basesMap[base_drink]) {
+              basesMap[base_drink] = {
+                base_drink,
+                total_sold: 0,
+              };
+            }
+            basesMap[base_drink].total_sold += quantity;
+          });
+        });
+        const computedTopBases = Object.values(basesMap)
+          .sort((a, b) => b.total_sold - a.total_sold)
+          .slice(0, 5)
+          .map((item) => ({
+            base_drink: item.base_drink,
+            total_sold: item.total_sold,
+          }));
+        setTopBases(computedTopBases);
+
+        // 3. Calcular Produtos Consumidos no período
+        const drinkIngredientsMap = {};
+        allDrinks.forEach((d) => {
+          drinkIngredientsMap[d.id] = d.ingredients || [];
+        });
+
+        const productsMap = {};
+        closedOrdersInPeriod.forEach((order) => {
+          (order.items || []).forEach((item) => {
+            const { drink_id, quantity } = item;
+            const ingredients = drinkIngredientsMap[drink_id] || [];
+            ingredients.forEach((ing) => {
+              const { product_id, product_name, quantity_used } = ing;
+              if (!productsMap[product_id]) {
+                productsMap[product_id] = {
+                  product_id,
+                  name: product_name || "—",
+                  total_consumed: 0,
+                };
+              }
+              productsMap[product_id].total_consumed += quantity * quantity_used;
+            });
+          });
+        });
+        const computedTopProducts = Object.values(productsMap)
+          .sort((a, b) => b.total_consumed - a.total_consumed)
+          .slice(0, 5);
+        setTopProducts(computedTopProducts);
+
       } catch (err) {
-        setErro(err instanceof ApiError ? err.message : "Erro ao carregar analytics");
+        setErro(err instanceof ApiError ? err.message : "Erro ao carregar tendências");
       } finally {
         setCarregando(false);
       }
     }
-    carregar();
-  }, [startDate, endDate]);
+
+    carregarVendasEFiltrar();
+  }, [startDate, endDate, dadosCarregados, allDrinks, allOrders]);
 
   const destaqueDrink = topDrinks[0];
   const destaqueBase = topBases[0];
