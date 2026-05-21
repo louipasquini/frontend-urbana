@@ -188,7 +188,7 @@ export default function Drinks() {
                   </ul>
                 )}
               </div>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => abrirEditar(drink)}
